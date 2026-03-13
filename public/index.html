@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Readify AI Chatbot</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 800px;
+      height: 90vh;
+      max-height: 700px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 25px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .chat-header h1 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .chat-header .status {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f8f9fa;
+    }
+
+    .message {
+      display: flex;
+      margin-bottom: 20px;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .message-content {
+      max-width: 70%;
+      padding: 12px 18px;
+      border-radius: 18px;
+      word-wrap: break-word;
+    }
+
+    .message.user .message-content {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.bot .message-content {
+      background: white;
+      color: #333;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .books-list {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .book-item {
+      background: #f8f9fa;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border-left: 3px solid #667eea;
+    }
+
+    .book-title {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .book-details {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .chat-input-container {
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 12px 18px;
+      border: 2px solid #e0e0e0;
+      border-radius: 25px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .chat-input:focus {
+      border-color: #667eea;
+    }
+
+    .send-button {
+      padding: 12px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .send-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .send-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .typing-indicator {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      padding: 12px 18px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      max-width: fit-content;
+    }
+
+    .typing-indicator.active {
+      display: flex;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: #667eea;
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.7; }
+      30% { transform: translateY(-10px); opacity: 1; }
+    }
+
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .example-chip {
+      background: #e8eaf6;
+      color: #667eea;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+
+    .example-chip:hover {
+      background: #667eea;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .error-message {
+      background: #fee;
+      color: #c33;
+      padding: 12px 18px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #667eea;
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #764ba2;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <div>
+        <h1>📚 Readify AI Chatbot</h1>
+        <div class="status" id="status">Sẵn sàng trợ giúp bạn</div>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+      <div class="message bot">
+        <div class="message-content">
+          <p>Xin chào! Tôi là trợ lý AI của Readify. Tôi có thể giúp bạn tìm sách theo:</p>
+          <div class="examples">
+            <div class="example-chip" onclick="sendExample('sách dưới 200000')">💰 Khoảng giá</div>
+            <div class="example-chip" onclick="sendExample('sách của Nguyễn Nhật Ánh')">✍️ Tác giả</div>
+            <div class="example-chip" onclick="sendExample('sách fantasy')">📖 Thể loại</div>
+            <div class="example-chip" onclick="sendExample('sách bán chạy nhất')">🔥 Bestseller</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-container">
+      <input 
+        type="text" 
+        class="chat-input" 
+        id="userInput" 
+        placeholder="Hỏi tôi về sách bạn muốn tìm..."
+        onkeypress="handleKeyPress(event)"
+      >
+      <button class="send-button" id="sendButton" onclick="sendMessage()">
+        Gửi
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3000';
+    
+    let conversationHistory = [];
+
+    function addMessage(
+      text,
+      isUser,
+      books = null,
+      error = false,
+      quickQuestions = null,
+    ) {
+      const messagesContainer = document.getElementById('chatMessages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+      
+      let content = `<div class="message-content">`;
+      
+      if (error) {
+        content += `<div class="error-message">${text}</div>`;
+      } else {
+        content += `<p>${String(text).replace(/\n/g, '<br>')}</p>`;
+        
+        if (books && books.length > 0) {
+          content += `<div class="books-list">`;
+          books.forEach((book, index) => {
+            content += `
+              <div class="book-item">
+                <div class="book-title">${index + 1}. ${book.title}</div>
+                <div class="book-details">
+                  ${book.author ? `✍️ ${book.author}<br>` : ''}
+                  ${book.category ? `📚 ${book.category}<br>` : ''}
+                  ${book.price ? `💰 ${book.price.toLocaleString()} ${book.currency || 'VND'}` : ''}
+                  ${book.stockQuantity !== undefined ? `<br>📦 Kho: ${book.stockQuantity} cuốn` : ''}
+                  ${book.soldCount ? `<br>🔥 Đã bán: ${book.soldCount}` : ''}
+                </div>
+              </div>
+            `;
+          });
+          content += `</div>`;
+        }
+
+        if (!isUser && quickQuestions && quickQuestions.length > 0) {
+          content += `<div class="examples">`;
+          quickQuestions.forEach((item) => {
+            const encoded = encodeURIComponent(item);
+            content += `<div class="example-chip" onclick="sendExample(decodeURIComponent('${encoded}'))">${item}</div>`;
+          });
+          content += `</div>`;
+        }
+      }
+      
+      content += `</div>`;
+      messageDiv.innerHTML = content;
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const messagesContainer = document.getElementById('chatMessages');
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'message bot';
+      typingDiv.id = 'typing';
+      typingDiv.innerHTML = `
+        <div class="typing-indicator active">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      `;
+      messagesContainer.appendChild(typingDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+      const typingDiv = document.getElementById('typing');
+      if (typingDiv) {
+        typingDiv.remove();
+      }
+    }
+
+    function setLoading(loading) {
+      const sendButton = document.getElementById('sendButton');
+      const userInput = document.getElementById('userInput');
+      const status = document.getElementById('status');
+      
+      sendButton.disabled = loading;
+      userInput.disabled = loading;
+      sendButton.textContent = loading ? 'Đang xử lý...' : 'Gửi';
+      status.textContent = loading ? 'Đang suy nghĩ...' : 'Sẵn sàng trợ giúp bạn';
+    }
+
+    async function sendMessage() {
+      const userInput = document.getElementById('userInput');
+      const question = userInput.value.trim();
+      
+      if (!question) return;
+      
+      // Add user message
+      addMessage(question, true);
+      userInput.value = '';
+      
+      // Show loading
+      setLoading(true);
+      showTypingIndicator();
+      
+      try {
+        const response = await fetch(`${API_URL}/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ question }),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        hideTypingIndicator();
+        addMessage(data.answer, false, data.books, false, data.quickQuestions);
+        
+      } catch (error) {
+        hideTypingIndicator();
+        addMessage(
+          'Xin lỗi, đã có lỗi xảy ra. Vui lòng kiểm tra:\n• Server đang chạy tại http://localhost:3000\n• Đã chạy lệnh POST /sync để đồng bộ dữ liệu\n• ChromaDB đang hoạt động (docker-compose up -d)',
+          false,
+          null,
+          true
+        );
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function sendExample(text) {
+      document.getElementById('userInput').value = text;
+      sendMessage();
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    }
+
+    // Check server health on load
+    async function checkHealth() {
+      try {
+        const response = await fetch(`${API_URL}/health`);
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('status').textContent = 
+            `✅ Kết nối thành công • ${data.services.chromaDocuments} tài liệu`;
+        }
+      } catch (error) {
+        document.getElementById('status').textContent = '⚠️ Không kết nối được server';
+      }
+    }
+
+    checkHealth();
+  </script>
+</body>
+</html>
