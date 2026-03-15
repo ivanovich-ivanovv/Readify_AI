@@ -8,6 +8,9 @@ import { EmbeddingModule } from '../embedding/embedding.module';
 import { ChatbotService } from './chatbot.service';
 import { ChatbotController } from './chatbot.controller';
 import { QueryClassifierService } from './query-classifier.service';
+import { ChatbotBookQueryService } from './services/chatbot-book-query.service';
+import { ChatbotPresentationService } from './services/chatbot-presentation.service';
+import { ChatbotQueryUtilsService } from './services/chatbot-query-utils.service';
 
 @Module({
   imports: [
@@ -18,7 +21,13 @@ import { QueryClassifierService } from './query-classifier.service';
     ChromaModule,
     EmbeddingModule,
   ],
-  providers: [ChatbotService, QueryClassifierService],
+  providers: [
+    ChatbotService,
+    QueryClassifierService,
+    ChatbotBookQueryService,
+    ChatbotPresentationService,
+    ChatbotQueryUtilsService,
+  ],
   controllers: [ChatbotController],
 })
 export class ChatbotModule {}
